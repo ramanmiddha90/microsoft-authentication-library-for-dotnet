@@ -154,6 +154,9 @@ namespace Microsoft.Identity.Client.Internal.Requests
             MsalRefreshTokenCacheItem rt = await CacheManager.FindRefreshTokenAsync().ConfigureAwait(false);
             _logger.Verbose("Non-family RT found? " + (rt != null));
 
+            // TODO: this is wrong - the app may have been marked as "not part of the family" in which
+            // case we should not use the FRT for it. Either modify the CacheManager logic or 
+            // change the logic of FindFamilyRefreshTokenAsync to take AppMetadta into accounrt (easier)
             if (rt == null)
             {
                 rt = await CacheManager.FindFamilyRefreshTokenAsync(CacheSessionManager.TheOnlyFamilyId).ConfigureAwait(false);
