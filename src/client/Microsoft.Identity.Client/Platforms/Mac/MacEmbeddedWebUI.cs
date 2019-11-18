@@ -23,6 +23,7 @@ namespace Microsoft.Identity.Client.Platforms.Mac
         public async Task<AuthorizationResult> AcquireAuthorizationAsync(
             Uri authorizationUri,
             Uri redirectUri,
+            string ssoHeader,
             RequestContext requestContext,
             CancellationToken cancellationToken)
         {

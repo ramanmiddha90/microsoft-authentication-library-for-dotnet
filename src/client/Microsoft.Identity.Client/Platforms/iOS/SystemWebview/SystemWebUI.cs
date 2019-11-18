@@ -20,6 +20,7 @@ namespace Microsoft.Identity.Client.Platforms.iOS.SystemWebview
         public override async Task<AuthorizationResult> AcquireAuthorizationAsync(
             Uri authorizationUri,
             Uri redirectUri,
+            string ssoHeader,
             RequestContext requestContext,
             CancellationToken cancellationToken)
         {

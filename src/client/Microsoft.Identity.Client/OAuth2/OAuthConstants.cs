@@ -41,6 +41,11 @@ namespace Microsoft.Identity.Client.OAuth2
 
         public const string TokenType = "token_type"; // not a standard OAuth2 param
         public const string RequestConfirmation = "req_cnf"; // not a standard OAuth2 param
+
+        public const string SsoRefreshToken = "x-ms-sso-RefreshToken";
+        // sent on interactive requests to the /authorize endpoint. Includes the refresh token, which may or may not have SSO enabled.
+        public const string SsoIgnoreSso = "x-ms-sso-Ignore-SSO";
+        // sent on interactive requests to the /authorize endpoint. Must be set to "1". Makes the returned auth code and subsequent refresh tokens SSO enabled
     }
 
     internal static class OAuth2GrantType

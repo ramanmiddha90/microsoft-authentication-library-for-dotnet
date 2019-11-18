@@ -13,6 +13,7 @@ namespace Microsoft.Identity.Client.UI
         Task<AuthorizationResult> AcquireAuthorizationAsync(
             Uri authorizationUri,
             Uri redirectUri,
+            string ssoHeader,
             RequestContext requestContext,
             CancellationToken cancellationToken);
 

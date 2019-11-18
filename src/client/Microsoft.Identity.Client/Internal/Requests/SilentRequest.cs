@@ -12,13 +12,13 @@ using Microsoft.Identity.Client.TelemetryCore.Internal.Events;
 using System.Linq;
 using System;
 using Microsoft.Identity.Client.Instance;
+using Microsoft.Identity.Client.Cache;
 
 namespace Microsoft.Identity.Client.Internal.Requests
 {
     internal class SilentRequest : RequestBase
     {
         private readonly AcquireTokenSilentParameters _silentParameters;
-        private const string TheOnlyFamilyId = "1";
 
         public SilentRequest(
             IServiceBundle serviceBundle,
@@ -164,7 +164,7 @@ namespace Microsoft.Identity.Client.Internal.Requests
 
             // If the app was just added to the family, the app metadata will reflect this
             // after the first RT exchanged.
-            bool? isFamilyMember = await CacheManager.IsAppFociMemberAsync(TheOnlyFamilyId).ConfigureAwait(false);
+            bool? isFamilyMember = await CacheManager.IsAppFociMemberAsync(CacheSessionManager.TheOnlyFamilyId).ConfigureAwait(false);
 
             if (isFamilyMember.HasValue && isFamilyMember.Value == false)
             {
@@ -175,7 +175,7 @@ namespace Microsoft.Identity.Client.Internal.Requests
             }
 
             logger.Verbose("[FOCI] App is part of the family or unknown, looking for FRT");
-            var familyRefreshToken = await CacheManager.FindFamilyRefreshTokenAsync(TheOnlyFamilyId).ConfigureAwait(false);
+            var familyRefreshToken = await CacheManager.FindFamilyRefreshTokenAsync(CacheSessionManager.TheOnlyFamilyId).ConfigureAwait(false);
             logger.Verbose("[FOCI] FRT found? " + (familyRefreshToken != null));
 
             if (familyRefreshToken != null)

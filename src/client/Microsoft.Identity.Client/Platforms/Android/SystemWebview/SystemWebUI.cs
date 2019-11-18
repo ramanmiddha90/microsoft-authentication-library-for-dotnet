@@ -27,6 +27,7 @@ namespace Microsoft.Identity.Client.Platforms.Android.SystemWebview
         public async override Task<AuthorizationResult> AcquireAuthorizationAsync(
             Uri authorizationUri,
             Uri redirectUri,
+            string ssoHeader,
             RequestContext requestContext,
             CancellationToken cancellationToken)
         {

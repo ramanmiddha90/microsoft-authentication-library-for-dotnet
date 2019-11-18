@@ -103,7 +103,7 @@ namespace Microsoft.Identity.Client.Platforms.net45
 
                         _threadInitializedEvent.Set();
 
-                        _dialog.AuthenticateAAD(RequestUri, CallbackUri);
+                        _dialog.AuthenticateAAD(RequestUri, CallbackUri, null);
 
                         // Start and turn control over to the message loop.
                         Application.Run();

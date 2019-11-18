@@ -8,15 +8,16 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Identity.Client.ApiConfig.Parameters;
+using Microsoft.Identity.Client.Cache;
+using Microsoft.Identity.Client.Cache.Items;
 using Microsoft.Identity.Client.Core;
 using Microsoft.Identity.Client.Http;
 using Microsoft.Identity.Client.Internal.Broker;
-using Microsoft.Identity.Client.TelemetryCore.Internal.Events;
 using Microsoft.Identity.Client.OAuth2;
+using Microsoft.Identity.Client.TelemetryCore.Internal;
+using Microsoft.Identity.Client.TelemetryCore.Internal.Events;
 using Microsoft.Identity.Client.UI;
 using Microsoft.Identity.Client.Utils;
-using Microsoft.Identity.Client.TelemetryCore.Internal;
-using Microsoft.Identity.Client.TelemetryCore;
 
 namespace Microsoft.Identity.Client.Internal.Requests
 {
@@ -31,6 +32,7 @@ namespace Microsoft.Identity.Client.Internal.Requests
         private string _state;
         private readonly AcquireTokenInteractiveParameters _interactiveParameters;
         private MsalTokenResponse _msalTokenResponse;
+        private readonly ICoreLogger _logger;
 
         public InteractiveRequest(
             IServiceBundle serviceBundle,
@@ -39,6 +41,8 @@ namespace Microsoft.Identity.Client.Internal.Requests
             IWebUI webUi)
             : base(serviceBundle, authenticationRequestParameters, interactiveParameters)
         {
+            _logger = AuthenticationRequestParameters.RequestContext.Logger;
+
             _webUi = webUi; // can be null just to generate the authorization uri 
 
             _interactiveParameters = interactiveParameters;
@@ -99,6 +103,7 @@ namespace Microsoft.Identity.Client.Internal.Requests
 
             AuthenticationRequestParameters.RedirectUri = _webUi.UpdateRedirectUri(AuthenticationRequestParameters.RedirectUri);
             var authorizationUri = CreateAuthorizationUri(true);
+            string ssoHeaders = await FetchSSOHeadersAsync().ConfigureAwait(false);
 
             var uiEvent = new UiEvent(AuthenticationRequestParameters.RequestContext.CorrelationId.AsMatsCorrelationId());
             using (ServiceBundle.TelemetryManager.CreateTelemetryHelper(uiEvent))
@@ -106,11 +111,56 @@ namespace Microsoft.Identity.Client.Internal.Requests
                 _authorizationResult = await _webUi.AcquireAuthorizationAsync(
                                            authorizationUri,
                                            AuthenticationRequestParameters.RedirectUri,
+                                           ssoHeaders,
                                            AuthenticationRequestParameters.RequestContext,
-                                           cancellationToken).ConfigureAwait(false);
+                                           cancellationToken)
+                    .ConfigureAwait(false);
+
                 uiEvent.UserCancelled = _authorizationResult.Status == AuthorizationStatus.UserCancel;
                 uiEvent.AccessDenied = _authorizationResult.Status == AuthorizationStatus.ProtocolError;
             }
+        }
+
+        private async Task<string> FetchSSOHeadersAsync()
+        {
+            // We can only fetch an RT if the user has told us which account they want
+            // via WithAccount
+            
+
+            // TODO: there are 2 ways of setting an account in AcquireTokenSilent
+            // .WithAccount  and .WithLoginHint . See the logic of SilentRequest to see
+            // how .WithLoginHint can find an IAccount. This is not currently implemented in this experiment
+
+            if (AuthenticationRequestParameters.Account != null)
+            {
+                _logger.Verbose("Finding a refresh token for SSO header");
+                var rtSecret = await FetchRefreshTokenAsync().ConfigureAwait(false);
+
+                if (rtSecret != null)
+                {
+                    return string.Format(CultureInfo.InvariantCulture,
+                        "{0}:{1}\r\n{2}:{3}",
+                        OAuth2Parameter.SsoIgnoreSso, "1",
+                        OAuth2Parameter.SsoRefreshToken, rtSecret);
+                }
+            }
+
+            return null;
+        }
+
+        private async Task<string> FetchRefreshTokenAsync()
+        {
+            _logger.Verbose("Finding a refresh token for SSO header...");
+            MsalRefreshTokenCacheItem rt = await CacheManager.FindRefreshTokenAsync().ConfigureAwait(false);
+            _logger.Verbose("Non-family RT found? " + (rt != null));
+
+            if (rt == null)
+            {
+                rt = await CacheManager.FindFamilyRefreshTokenAsync(CacheSessionManager.TheOnlyFamilyId).ConfigureAwait(false);
+                _logger.Verbose("Family RT found? " + (rt != null));
+            }
+
+            return rt?.Secret;
         }
 
         internal async Task<Uri> CreateAuthorizationUriAsync()
@@ -274,7 +324,7 @@ namespace Microsoft.Identity.Client.Internal.Requests
             if (_authorizationResult.Status != AuthorizationStatus.Success)
             {
                 ServiceBundle.DefaultLogger.InfoPii(
-                    LogMessages.AuthorizationResultWasNotSuccessful + _authorizationResult.ErrorDescription ?? "Unknown error.", 
+                    LogMessages.AuthorizationResultWasNotSuccessful + _authorizationResult.ErrorDescription ?? "Unknown error.",
                     LogMessages.AuthorizationResultWasNotSuccessful);
                 throw new MsalServiceException(
                     _authorizationResult.Error,

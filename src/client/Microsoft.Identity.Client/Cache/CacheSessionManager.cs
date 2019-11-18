@@ -18,13 +18,15 @@ namespace Microsoft.Identity.Client.Cache
     /// MSAL should only interact with the cache though this object. It is reponsible for firing cache notifications.
     /// Flows should only perform (at most) 2 cache accesses: one to read data and one to write tokens. Reading data multiple times 
     /// (e.g. read all ATs, read all RTs) should not refresh the cache from disk because of perf impact.
-    /// Write operations are still the responsability of TokenCache.
+    /// Write operations are still the responsibility of TokenCache.
     /// </summary>
     internal class CacheSessionManager : ICacheSessionManager
     {
         private readonly AuthenticationRequestParameters _requestParams;
         private readonly ITelemetryManager _telemetryManager;
         private bool _cacheRefreshedForRead = false;
+        internal const string TheOnlyFamilyId = "1";
+
 
         public CacheSessionManager(
             ITokenCacheInternal tokenCacheInternal, 

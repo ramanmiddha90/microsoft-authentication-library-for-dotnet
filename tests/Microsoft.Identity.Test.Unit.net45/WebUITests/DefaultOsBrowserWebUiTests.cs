@@ -107,6 +107,7 @@ namespace Microsoft.Identity.Test.Unit.WebUITests
             AuthorizationResult authorizationResult = await webUI.AcquireAuthorizationAsync(
                 new Uri(TestAuthorizationRequestUri),
                 new Uri(TestRedirectUri),
+                string.Empty,
                 requestContext,
                 CancellationToken.None).ConfigureAwait(false);
 
@@ -152,6 +153,7 @@ namespace Microsoft.Identity.Test.Unit.WebUITests
             AuthorizationResult authorizationResult = await webUI.AcquireAuthorizationAsync(
                 new Uri(requestUri),
                 new Uri(redirectUri),
+                string.Empty,
                 requestContext,
                 CancellationToken.None).ConfigureAwait(false);
 

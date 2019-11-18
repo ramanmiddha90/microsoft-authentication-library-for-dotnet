@@ -22,7 +22,7 @@ namespace NetCoreTestApp
         // This app has http://localhost redirect uri registered
         private static readonly string s_clientIdForPublicApp = "1d18b3b0-251b-4714-a02a-9956cec86c2d";
 
-        private static readonly string s_username = ""; // used for WIA and U/P, cannot be empty on .net core
+        private static readonly string s_username = "jeferrie@microsoft.com"; // used for WIA and U/P, cannot be empty on .net core
         private static readonly IEnumerable<string> s_scopes = new[] {
             "user.read", "openid" }; // used for WIA and U/P, can be empty
 
@@ -108,7 +108,9 @@ namespace NetCoreTestApp
                     switch (selection)
                     {
                     case 1: // acquire token
-                        authTask = pca.AcquireTokenByIntegratedWindowsAuth(s_scopes).WithUsername(s_username).ExecuteAsync(CancellationToken.None);
+                        authTask = pca.AcquireTokenByIntegratedWindowsAuth(s_scopes).WithUsername(s_username)
+                                .WithAuthority("https://login.microsoftonline.com/organizations")
+                                .ExecuteAsync(CancellationToken.None);
                         await FetchTokenAndCallGraphAsync(pca, authTask).ConfigureAwait(false);
 
                         break;

@@ -24,12 +24,11 @@ namespace NetFx
         // This app has http://localhost redirect uri registered
         private static readonly string s_clientIdForPublicApp = "1d18b3b0-251b-4714-a02a-9956cec86c2d";
         private static readonly string s_clientIdForConfidentialApp =
-            Environment.GetEnvironmentVariable("LAB_APP_CLIENT_ID") ??
-            throw new ArgumentException("Please configure a client id");
+            Environment.GetEnvironmentVariable("LAB_APP_CLIENT_ID");
+
 
         private static readonly string s_confidentialClientSecret =
-            Environment.GetEnvironmentVariable("LAB_APP_CLIENT_SECRET") ??
-            throw new ArgumentException("Please configure a client secret");
+            Environment.GetEnvironmentVariable("LAB_APP_CLIENT_SECRET");
 
         private static readonly string s_username = ""; // used for WIA and U/P, cannot be empty on .net core
         private static readonly IEnumerable<string> s_scopes = new[] { "user.read", "Openid", "profile" }; // used for WIA and U/P, can be empty
@@ -52,8 +51,8 @@ namespace NetFx
             Console.ResetColor();
             Console.BackgroundColor = ConsoleColor.Black;
             var pca = CreatePca();
-            var cca = CreateCca();
-            RunConsoleAppLogicAsync(pca, cca).Wait();
+            //var cca = CreateCca();
+            RunConsoleAppLogicAsync(pca, null).Wait();
         }
 
         private static string GetAuthority()
@@ -79,7 +78,7 @@ namespace NetFx
             IPublicClientApplication pca = PublicClientApplicationBuilder
                             .Create(s_clientIdForPublicApp)
                             .WithAuthority(GetAuthority())
-                            .WithLogging(Log, LogLevel.Verbose, true)
+                            .WithLogging(Log, LogLevel.Verbose, true)                            
                             .WithRedirectUri("http://localhost") // required for DefaultOsBrowser
                             .Build();
 
@@ -178,12 +177,11 @@ namespace NetFx
                             break;
                         case '4':
 
+                            var accounts3 = await pca.GetAccountsAsync().ConfigureAwait(false);
                             authTask = pca.AcquireTokenInteractive(s_scopes)
                                 .WithPrompt(Prompt.Consent)
+                                .WithAccount(accounts3.FirstOrDefault())  
                                 .ExecuteAsync(CancellationToken.None);
-
-                            await FetchTokenAndCallGraphAsync(pca, authTask).ConfigureAwait(false);
-                            break;
 
                             await FetchTokenAndCallGraphAsync(pca, authTask).ConfigureAwait(false);
                             break;

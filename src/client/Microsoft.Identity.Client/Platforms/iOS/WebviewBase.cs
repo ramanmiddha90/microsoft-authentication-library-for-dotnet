@@ -40,6 +40,7 @@ namespace Microsoft.Identity.Client.Platforms.iOS
         public abstract Task<AuthorizationResult> AcquireAuthorizationAsync(
             Uri authorizationUri,
             Uri redirectUri,
+            string ssoHeader,
             RequestContext requestContext,
             CancellationToken cancellationToken);
 

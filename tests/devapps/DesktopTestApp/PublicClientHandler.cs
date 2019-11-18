@@ -20,13 +20,16 @@ namespace DesktopTestApp
                 .WithClientName(_clientName)
                 .WithRedirectUri("https://login.microsoftonline.com/common/oauth2/nativeclient")
                 .WithLogging(logCallback, LogLevel.Verbose, true)
+                //.WithTenantId("72f988bf-86f1-41af-91ab-2d7cd011db47")
+                //.WithTenantId("0287f963-2d72-4363-9e3a-5705c5b0f031")
+                //.WithTenantId("f645ad92-e38d-4d1a-b510-d1b09a74a8ca")
 #if ARIA_TELEMETRY_ENABLED
                 .WithTelemetry((new Microsoft.Identity.Client.AriaTelemetryProvider.ServerTelemetryHandler()).OnEvents)
 #endif
                 .BuildConcrete();
 
 
-            CreateOrUpdatePublicClientApp(InteractiveAuthority, ApplicationId);
+            //CreateOrUpdatePublicClientApp(InteractiveAuthority, ApplicationId);
         }
 
         public string ApplicationId { get; set; }
@@ -42,13 +45,14 @@ namespace DesktopTestApp
             Prompt uiBehavior,
             string extraQueryParams)
         {
-            CreateOrUpdatePublicClientApp(InteractiveAuthority, ApplicationId);
+            //CreateOrUpdatePublicClientApp(InteractiveAuthority, ApplicationId);
 
             AuthenticationResult result;
             if (CurrentUser != null)
             {
                 result = await PublicClientApplication
                     .AcquireTokenInteractive(scopes)
+                    .WithLoginHint(LoginHint)
                     .WithAccount(CurrentUser)
                     .WithPrompt(uiBehavior)
                     .WithExtraQueryParameters(extraQueryParams)
@@ -108,7 +112,7 @@ namespace DesktopTestApp
         public async Task<AuthenticationResult> AcquireTokenSilentAsync(IEnumerable<string> scopes, bool forceRefresh)
         {
             var builder = PublicClientApplication
-                .AcquireTokenSilent(scopes, CurrentUser)
+                .AcquireTokenSilent(scopes, "jeferrie@msdevex.onmicrosoft.com")
                 .WithForceRefresh(forceRefresh);
 
             if (!string.IsNullOrWhiteSpace(AuthorityOverride))

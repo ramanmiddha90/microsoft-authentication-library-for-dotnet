@@ -15,6 +15,8 @@ namespace Microsoft.Identity.Client.Platforms.net45
     {
         protected Uri RequestUri { get; private set; }
         protected Uri CallbackUri { get; private set; }
+        protected string SsoHeaders { get; private set; }
+
         public object OwnerWindow { get; set; }
         protected SynchronizationContext SynchronizationContext { get; set; }
 
@@ -23,6 +25,7 @@ namespace Microsoft.Identity.Client.Platforms.net45
         public async Task<AuthorizationResult> AcquireAuthorizationAsync(
             Uri authorizationUri,
             Uri redirectUri,
+            string ssoHeader,
             RequestContext requestContext,
             CancellationToken cancellationToken)
         {
@@ -30,14 +33,14 @@ namespace Microsoft.Identity.Client.Platforms.net45
 
             var sendAuthorizeRequest = new Action(() =>
             {
-                authorizationResult = Authenticate(authorizationUri, redirectUri);
+                authorizationResult = Authenticate(authorizationUri, redirectUri, ssoHeader);
             });
 
             var sendAuthorizeRequestWithTcs = new Action<object>((tcs) =>
             {
                 try
                 {
-                    authorizationResult = Authenticate(authorizationUri, redirectUri);
+                    authorizationResult = Authenticate(authorizationUri, redirectUri, ssoHeader);
                    ((TaskCompletionSource<object>)tcs).TrySetResult(null);
                 }
                 catch (Exception e)
@@ -96,10 +99,14 @@ namespace Microsoft.Identity.Client.Platforms.net45
             return await Task.Factory.StartNew(() => authorizationResult).ConfigureAwait(false);
         }
 
-        internal AuthorizationResult Authenticate(Uri requestUri, Uri callbackUri)
+        private AuthorizationResult Authenticate(
+            Uri requestUri, 
+            Uri callbackUri,
+            string ssoHeaders)
         {
             RequestUri = requestUri;
             CallbackUri = callbackUri;
+            SsoHeaders = ssoHeaders;
 
             return OnAuthenticate();
         }
