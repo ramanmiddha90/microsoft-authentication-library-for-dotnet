@@ -30,7 +30,7 @@ namespace Microsoft.Identity.Test.Unit.WebUITests
             _parent.UseEmbeddedWebview = true;
 
             // Act
-            var webUi = _webUIFactory.CreateAuthenticationDialog(_parent, _requestContext, null);
+            var webUi = _webUIFactory.CreateAuthenticationDialog(_parent, _requestContext);
 
             // Assert
             Assert.IsTrue(webUi is InteractiveWebUI);
@@ -43,7 +43,7 @@ namespace Microsoft.Identity.Test.Unit.WebUITests
             _parent.UseHiddenBrowser = true;
 
             // Act
-            var webUi = _webUIFactory.CreateAuthenticationDialog(_parent, _requestContext, null);
+            var webUi = _webUIFactory.CreateAuthenticationDialog(_parent, _requestContext);
 
             // Assert
             Assert.IsTrue(webUi is SilentWebUI);
@@ -56,7 +56,7 @@ namespace Microsoft.Identity.Test.Unit.WebUITests
             _parent.UseEmbeddedWebview = false;
 
             // Act
-            var webUi = _webUIFactory.CreateAuthenticationDialog(_parent, _requestContext, null);
+            var webUi = _webUIFactory.CreateAuthenticationDialog(_parent, _requestContext);
 
             // Assert
             Assert.IsTrue(webUi is DefaultOsBrowserWebUi);
